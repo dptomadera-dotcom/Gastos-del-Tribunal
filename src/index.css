@@ -1,0 +1,127 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer utilities {
+  @keyframes pulse-subtle {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(1.02); }
+  }
+
+  @keyframes bounce-subtle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+
+  .animate-pulse-subtle {
+    animation: pulse-subtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .animate-bounce-subtle {
+    animation: bounce-subtle 2.5s ease-in-out infinite;
+  }
+}
+
+/* ==========================================
+   ELEGANT DARK MODE GLOBAL OVERRIDES
+   ========================================== */
+.dark {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+/* Page, root, and main content panel */
+.dark body,
+.dark #root,
+.dark main {
+  background-color: #090d16 !important;
+  color: #f1f5f9 !important;
+}
+
+/* Cards & containers */
+.dark .bg-white {
+  background-color: #121b2d !important;
+  color: #f1f5f9 !important;
+}
+
+/* Subtle boxes and compartments */
+.dark .bg-slate-50,
+.dark .bg-slate-50\/70,
+.dark .bg-slate-50\/40 {
+  background-color: #0b111e !important;
+}
+
+/* List group borders, card borders, and dividers */
+.dark .border-slate-100,
+.dark .border-slate-200 {
+  border-color: #1e293b !important;
+}
+
+/* Headings and primary text */
+.dark h2,
+.dark h3,
+.dark h4,
+.dark .text-slate-900,
+.dark .text-slate-800,
+.dark .text-slate-700 {
+  color: #f8fafc !important;
+}
+
+/* Form inputs & select fields */
+.dark input[type="text"],
+.dark input[type="number"],
+.dark input[type="date"],
+.dark input[type="time"],
+.dark input[type="email"],
+.dark select,
+.dark textarea,
+.dark .bg-white input,
+.dark .bg-white select {
+  background-color: #090d16 !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+/* Specific select dropdown values inside dark mode */
+.dark select option {
+  background-color: #121b2d !important;
+  color: #f8fafc !important;
+}
+
+/* Secondary descriptions, labels and help text */
+.dark p,
+.dark label,
+.dark .text-slate-600,
+.dark .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+/* Interactive elements in secondary state (e.g. unselected tags/buttons) */
+.dark .bg-white.border-slate-200 {
+  background-color: #1a2436 !important;
+  border-color: #2e3c54 !important;
+  color: #cbd5e1 !important;
+}
+
+.dark .bg-white.border-slate-200:hover {
+  background-color: #223048 !important;
+  color: #ffffff !important;
+}
+
+/* Inline badges with slate background */
+.dark .bg-slate-100 {
+  background-color: #1a2436 !important;
+  color: #cbd5e1 !important;
+}
+
+.dark .text-slate-400 {
+  color: #64748b !important;
+}
+
+

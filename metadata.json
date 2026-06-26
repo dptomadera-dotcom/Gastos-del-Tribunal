@@ -1,0 +1,6 @@
+{
+  "name": "Mis Gastos Tribunal 2026",
+  "description": "Aplicativo auxiliar para miembros de tribunales de oposición que recopila y organiza las sesiones, dietas, desplazamientos y justificantes de gastos para facilitar la liquidación oficial.",
+  "requestFramePermissions": ["camera", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
