@@ -1,11 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://vdgfxtbjocywcchwktzf.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = (typeof window !== 'undefined' && localStorage.getItem('supabase_url_override')) || import.meta.env.VITE_SUPABASE_URL || 'https://vdgfxtbjocywcchwktzf.supabase.co';
+const supabaseAnonKey = (typeof window !== 'undefined' && localStorage.getItem('supabase_key_override')) || import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-if (!import.meta.env.VITE_SUPABASE_ANON_KEY) {
+if (!supabaseAnonKey && (!import.meta.env || !import.meta.env.VITE_SUPABASE_ANON_KEY)) {
   console.warn(
-    'Supabase VITE_SUPABASE_ANON_KEY no está configurada. La aplicación funcionará en modo Local (IndexedDB) temporalmente hasta que configures las variables de entorno en el archivo .env.'
+    'Supabase VITE_SUPABASE_ANON_KEY no está configurada. La aplicación funcionará en modo Local (IndexedDB) temporalmente hasta que configures las variables de entorno o la configures en la interfaz.'
   );
 }
 

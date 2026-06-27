@@ -39,6 +39,11 @@ export default function ProfileScreen({ initialProfile, onSave }: ProfileScreenP
   const [geminiApiKey, setGeminiApiKey] = useState('');
   const [geminiKeySaved, setGeminiKeySaved] = useState(false);
 
+  // New States for Supabase Config Overrides
+  const [supabaseUrlInput, setSupabaseUrlInput] = useState('');
+  const [supabaseKeyInput, setSupabaseKeyInput] = useState('');
+  const [supabaseConfigSaved, setSupabaseConfigSaved] = useState(false);
+
   useEffect(() => {
     // Check current auth status
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -52,6 +57,10 @@ export default function ProfileScreen({ initialProfile, onSave }: ProfileScreenP
     // Load Gemini Key from localStorage
     const savedKey = localStorage.getItem('gemini_api_key') || '';
     setGeminiApiKey(savedKey);
+
+    // Load Supabase Config Overrides from localStorage
+    setSupabaseUrlInput(localStorage.getItem('supabase_url_override') || 'https://vdgfxtbjocywcchwktzf.supabase.co');
+    setSupabaseKeyInput(localStorage.getItem('supabase_key_override') || '');
 
     return () => subscription.unsubscribe();
   }, []);
@@ -140,6 +149,27 @@ export default function ProfileScreen({ initialProfile, onSave }: ProfileScreenP
     localStorage.setItem('gemini_api_key', geminiApiKey.trim());
     setGeminiKeySaved(true);
     setTimeout(() => setGeminiKeySaved(false), 3000);
+  };
+
+  const handleSaveSupabaseConfig = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (supabaseUrlInput.trim()) {
+      localStorage.setItem('supabase_url_override', supabaseUrlInput.trim());
+    } else {
+      localStorage.removeItem('supabase_url_override');
+    }
+    
+    if (supabaseKeyInput.trim()) {
+      localStorage.setItem('supabase_key_override', supabaseKeyInput.trim());
+    } else {
+      localStorage.removeItem('supabase_key_override');
+    }
+
+    setSupabaseConfigSaved(true);
+    setTimeout(() => {
+      setSupabaseConfigSaved(false);
+      window.location.reload();
+    }, 1500);
   };
 
   return (
@@ -412,6 +442,59 @@ export default function ProfileScreen({ initialProfile, onSave }: ProfileScreenP
         </div>
 
         <div className="p-6 space-y-4">
+          {/* Configuración de Credenciales del Proyecto Supabase (Para entornos sin .env como GitHub Pages) */}
+          <form onSubmit={handleSaveSupabaseConfig} className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800/80 space-y-3">
+            <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+              Configuración de Conexión Supabase (Opcional / Hostings Públicos)
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[10px] font-semibold text-slate-500 mb-1" htmlFor="input-sb-url">
+                  Supabase URL
+                </label>
+                <input
+                  id="input-sb-url"
+                  type="text"
+                  placeholder="https://su-proyecto.supabase.co"
+                  className="w-full px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-600 font-mono"
+                  value={supabaseUrlInput}
+                  onChange={(e) => setSupabaseUrlInput(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-semibold text-slate-500 mb-1" htmlFor="input-sb-key">
+                  Supabase Anon Key
+                </label>
+                <input
+                  id="input-sb-key"
+                  type="password"
+                  placeholder="Pegue la clave pública anon key"
+                  className="w-full px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-600 font-mono"
+                  value={supabaseKeyInput}
+                  onChange={(e) => setSupabaseKeyInput(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-[10px] text-slate-400">
+                Guarde para sobreescribir la configuración por defecto y poder iniciar sesión.
+              </span>
+              <button
+                type="submit"
+                className="px-3 py-1.5 bg-slate-700 hover:bg-slate-800 dark:bg-slate-600 dark:hover:bg-slate-700 text-white font-semibold text-xs rounded-md transition cursor-pointer"
+              >
+                Guardar Conexión
+              </button>
+            </div>
+            {supabaseConfigSaved && (
+              <p className="text-[10px] text-emerald-600 font-bold mt-1">
+                ✓ Configuración guardada. Recargando aplicación...
+              </p>
+            )}
+          </form>
+
+          <div className="h-px bg-slate-100 dark:bg-slate-850 my-2"></div>
+
           {currentUserEmail ? (
             /* Usuario autenticado */
             <div className="space-y-4">
