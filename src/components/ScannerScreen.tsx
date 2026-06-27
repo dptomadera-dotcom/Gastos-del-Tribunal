@@ -7,8 +7,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Justificante, Expense } from '../types';
 import { 
   Camera, Upload, Trash2, Link as LinkIcon, CheckCircle, 
-  AlertCircle, Eye, X, Image as ImageIcon, Sparkles, RefreshCw, FileText
+  AlertCircle, Eye, X, Image as ImageIcon, Sparkles, RefreshCw, FileText,
+  BrainCircuit, Loader2
 } from 'lucide-react';
+import { GoogleGenAI } from '@google/genai';
 
 interface ScannerScreenProps {
   justificantes: Justificante[];
@@ -31,6 +33,11 @@ export default function ScannerScreen({
   const [tipo, setTipo] = useState<Justificante['tipo']>('Ticket Parking');
   const [fotoUrl, setFotoUrl] = useState<string | null>(null);
   const [associatedExpenseId, setAssociatedExpenseId] = useState<string>('');
+
+  // AI states
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiMessage, setAiMessage] = useState<string | null>(null);
 
   // Camera states
   const [cameraActive, setCameraActive] = useState(false);
@@ -145,6 +152,100 @@ export default function ScannerScreen({
     }
   };
 
+  const handleAnalyzeReceipt = async () => {
+    if (!fotoUrl) return;
+
+    // Obtener la clave API de Gemini del localStorage o del entorno de compilación
+    const apiKey = localStorage.getItem('gemini_api_key') || import.meta.env.VITE_GEMINI_API_KEY || '';
+    if (!apiKey) {
+      setAiError('Por favor, configure su Gemini API Key en la pestaña de Perfil antes de usar el análisis por IA.');
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setAiError(null);
+    setAiMessage(null);
+
+    try {
+      // Extraer los datos mimeType y base64
+      const matches = fotoUrl.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
+      let mimeType = 'image/jpeg';
+      let base64Data = '';
+
+      if (matches) {
+        mimeType = matches[1];
+        base64Data = matches[2];
+      } else if (fotoUrl.startsWith('data:image/svg+xml')) {
+        // Ticket de demostración simulado localmente para evitar error de Gemini con SVG crudo
+        await new Promise((resolve) => setTimeout(resolve, 1500)); // Simular retraso
+        setTitulo("Factura Hotel Sede — 14/06/2026");
+        setFecha("2026-06-14");
+        setTipo("Factura Hotel");
+        setAiMessage("✓ Simulación de IA completada: Factura Hotel Sede de 106.94 € detectada.");
+        setIsAnalyzing(false);
+        return;
+      } else {
+        throw new Error("El formato de la imagen no es compatible con el análisis de Gemini.");
+      }
+
+      // Inicializar el SDK de Gemini
+      const ai = new GoogleGenAI({ apiKey });
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                text: 'Analiza este ticket e identifica la fecha del ticket (formato YYYY-MM-DD), el tipo de gasto (debe ser estrictamente uno de los siguientes: "Factura Hotel", "Tarjeta de Embarque", "Ticket Parking", "Ticket Taxi", "Ticket Guagua", "Otro"), el importe total numérico y un título descriptivo breve (ej: "Aparcamiento Estación", "Taxi Aeropuerto"). Devuelve el resultado en formato JSON estructurado según el esquema solicitado.'
+              },
+              {
+                inlineData: {
+                  mimeType,
+                  data: base64Data
+                }
+              }
+            ]
+          }
+        ],
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: 'OBJECT',
+            properties: {
+              titulo: { type: 'STRING' },
+              fecha: { type: 'STRING' },
+              tipo: {
+                type: 'STRING',
+                enum: ['Factura Hotel', 'Tarjeta de Embarque', 'Ticket Parking', 'Ticket Taxi', 'Ticket Guagua', 'Otro']
+              },
+              importe: { type: 'NUMBER' }
+            },
+            required: ['titulo', 'fecha', 'tipo', 'importe']
+          }
+        }
+      });
+
+      const resultText = response.text;
+      if (!resultText) {
+        throw new Error("No se obtuvo respuesta del modelo Gemini.");
+      }
+
+      const data = JSON.parse(resultText);
+      if (data.titulo) setTitulo(data.titulo);
+      if (data.fecha) setFecha(data.fecha);
+      if (data.tipo) setTipo(data.tipo);
+
+      setAiMessage(`✓ Análisis completado con éxito: Detectado ticket "${data.titulo}" por valor de ${data.importe} €.`);
+    } catch (err: any) {
+      console.error('Error al analizar con Gemini:', err);
+      setAiError(err.message || 'Error al comunicarse con la API de Gemini. Verifique su API Key.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!fotoUrl) {
@@ -245,8 +346,46 @@ export default function ScannerScreen({
                 </div>
                 <p className="text-xs text-slate-500 mt-2 flex items-center gap-1">
                   <Sparkles className="h-3.5 w-3.5 text-emerald-500" />
-                  Foto cargada con éxito. Configure los campos a la derecha para guardarla.
+                  Foto cargada con éxito.
                 </p>
+
+                {/* Botón de análisis con Gemini */}
+                <div className="mt-4 w-full max-w-xs space-y-2">
+                  <button
+                    type="button"
+                    onClick={handleAnalyzeReceipt}
+                    disabled={isAnalyzing}
+                    className={`w-full py-2 px-4 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer ${
+                      isAnalyzing
+                        ? 'bg-slate-200 text-slate-400 cursor-wait'
+                        : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-755 border border-indigo-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700'
+                    }`}
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        Analizando imagen...
+                      </>
+                    ) : (
+                      <>
+                        <BrainCircuit className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                        Analizar ticket con IA (Gemini)
+                      </>
+                    )}
+                  </button>
+
+                  {aiError && (
+                    <p className="text-[10px] text-rose-600 font-bold bg-rose-50 dark:bg-rose-950/20 p-2.5 rounded-lg text-left">
+                      ⚠ {aiError}
+                    </p>
+                  )}
+
+                  {aiMessage && (
+                    <p className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/20 p-2.5 rounded-lg text-left">
+                      {aiMessage}
+                    </p>
+                  )}
+                </div>
               </div>
             ) : (
               /* Zona de arrastre de archivos */
