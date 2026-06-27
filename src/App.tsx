@@ -20,16 +20,22 @@ import ScannerScreen from './components/ScannerScreen';
 import ExportScreen from './components/ExportScreen';
 import QuickStartGuide from './components/QuickStartGuide';
 import TableroScreen from './components/TableroScreen';
+import SettingsScreen from './components/SettingsScreen';
+import LoginPortal from './components/LoginPortal';
+
+// Supabase client
+import { supabase } from './supabaseClient';
 
 // Icons
 import { 
   User, Calendar, FileText, Camera, Download, 
   Scale, ShieldCheck, Landmark, CheckCircle2,
-  Sun, Moon, LayoutDashboard, ChevronLeft, ChevronRight, Menu, HelpCircle
+  Sun, Moon, LayoutDashboard, ChevronLeft, ChevronRight, Menu, HelpCircle,
+  Settings
 } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'tablero' | 'perfil' | 'sesiones' | 'gastos' | 'escanner' | 'exportar'>('tablero');
+  const [activeTab, setActiveTab] = useState<'tablero' | 'perfil' | 'sesiones' | 'gastos' | 'escanner' | 'exportar' | 'ajustes'>('tablero');
 
   // Sidebar collapse state
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
@@ -109,6 +115,36 @@ export default function App() {
       localStorage.setItem('theme', 'light');
     }
   }, [isDarkMode]);
+
+  // Supabase Auth and Login Portal states
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
+  const [bypassLogin, setBypassLogin] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Check connection first
+    const url = localStorage.getItem('supabase_url_override') || import.meta.env.VITE_SUPABASE_URL;
+    const key = localStorage.getItem('supabase_key_override') || import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const hasSbConfig = !!(url && key && key !== 'dummy-anon-key-to-prevent-crash');
+
+    if (hasSbConfig) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setCurrentUserEmail(session?.user?.email || null);
+      });
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setCurrentUserEmail(session?.user?.email || null);
+      });
+
+      return () => subscription.unsubscribe();
+    }
+  }, []);
+
+  const showLoginPortal = () => {
+    const url = localStorage.getItem('supabase_url_override') || import.meta.env.VITE_SUPABASE_URL;
+    const key = localStorage.getItem('supabase_key_override') || import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const hasSbConfig = !!(url && key && key !== 'dummy-anon-key-to-prevent-crash');
+    return hasSbConfig && !currentUserEmail && !bypassLogin;
+  };
 
   // Application database states
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -482,6 +518,20 @@ export default function App() {
                 </span>
               )}
             </a>
+
+            <button
+              id="tab-ajustes"
+              onClick={() => setActiveTab('ajustes')}
+              title={isSidebarCollapsed ? 'Ajustes y Configuración' : undefined}
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center px-0 py-3' : 'gap-3 px-4 py-3'} text-sm font-medium rounded-lg transition-colors cursor-pointer ${
+                activeTab === 'ajustes'
+                  ? 'bg-indigo-600 text-white shadow-md'
+                  : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+              }`}
+            >
+              <Settings className="h-4.5 w-4.5 shrink-0" />
+              {!isSidebarCollapsed && <span className="flex-grow text-left">Ajustes</span>}
+            </button>
           </nav>
         </div>
 
@@ -651,6 +701,12 @@ export default function App() {
               justificantes={justificantes}
             />
           )}
+          {activeTab === 'ajustes' && (
+            <SettingsScreen 
+              isDarkMode={isDarkMode} 
+              setIsDarkMode={setIsDarkMode} 
+            />
+          )}
         </div>
       </main>
 
@@ -687,6 +743,17 @@ export default function App() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Portal de Acceso (Login/Registro/Modo Local) */}
+      {showLoginPortal() && (
+        <LoginPortal 
+          onBypass={() => setBypassLogin(true)}
+          onSuccess={(email) => {
+            setCurrentUserEmail(email);
+            setBypassLogin(true);
+          }}
+        />
       )}
     </div>
   );
