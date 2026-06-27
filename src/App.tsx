@@ -45,6 +45,53 @@ export default function App() {
     });
   };
 
+  // PWA Installation States
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState<boolean>(false);
+  const [showIOSInstructions, setShowIOSInstructions] = useState<boolean>(false);
+
+  const isIOS = () => {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+  };
+
+  useEffect(() => {
+    // Detect if already installed (standalone mode)
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+    setIsInstalled(isStandalone);
+
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+    };
+
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setIsInstalled(true);
+      }
+      setDeferredPrompt(null);
+    } else if (isIOS()) {
+      setShowIOSInstructions(true);
+    }
+  };
+
   // Dark mode state with automatic recovery from localStorage or system prefers
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('theme');
@@ -423,7 +470,19 @@ export default function App() {
         </div>
 
         {/* Sidebar Footer with primary action */}
-        <div className={`${isSidebarCollapsed ? 'p-3' : 'p-6'} border-t border-slate-800 bg-slate-950/40 shrink-0`}>
+        <div className={`${isSidebarCollapsed ? 'p-3' : 'p-6'} border-t border-slate-800 bg-slate-950/40 shrink-0 space-y-2`}>
+          {/* Botón de Instalación PWA (oculto si ya está instalada) */}
+          {!isInstalled && (deferredPrompt || isIOS()) && (
+            <button
+              onClick={handleInstallClick}
+              title={isSidebarCollapsed ? 'Instalar aplicación en el móvil' : undefined}
+              className="w-full font-semibold py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"
+            >
+              <span>📲</span>
+              {!isSidebarCollapsed && <span>Instalar App Móvil</span>}
+            </button>
+          )}
+
           <button
             onClick={() => setActiveTab('exportar')}
             title={isSidebarCollapsed ? 'Exportar a Secretaría' : undefined}
@@ -578,6 +637,41 @@ export default function App() {
           )}
         </div>
       </main>
+
+      {/* iOS PWA Installation Modal */}
+      {showIOSInstructions && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+            <div className="text-center space-y-2">
+              <span className="text-4xl" role="img" aria-label="phone">📱</span>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">Instalar en tu iPhone / iPad</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Apple no permite la instalación automática desde el navegador, pero puedes añadirla manualmente a tu pantalla de inicio:
+              </p>
+            </div>
+            <div className="text-xs text-slate-700 dark:text-slate-300 space-y-2 bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-xl border border-slate-100 dark:border-slate-800">
+              <p className="flex gap-2">
+                <span className="font-bold text-indigo-600 dark:text-indigo-400">1.</span>
+                <span>Abre el enlace en el navegador <strong>Safari</strong>.</span>
+              </p>
+              <p className="flex gap-2">
+                <span className="font-bold text-indigo-600 dark:text-indigo-400">2.</span>
+                <span>Pulsa el botón de <strong>Compartir</strong> (el icono del cuadrado con una flecha hacia arriba en la parte inferior).</span>
+              </p>
+              <p className="flex gap-2">
+                <span className="font-bold text-indigo-600 dark:text-indigo-400">3.</span>
+                <span>Desliza el menú hacia abajo y selecciona <strong>"Añadir a la pantalla de inicio"</strong>.</span>
+              </p>
+            </div>
+            <button
+              onClick={() => setShowIOSInstructions(false)}
+              className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow transition cursor-pointer"
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
