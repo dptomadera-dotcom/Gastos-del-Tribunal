@@ -25,7 +25,7 @@ import TableroScreen from './components/TableroScreen';
 import { 
   User, Calendar, FileText, Camera, Download, 
   Scale, ShieldCheck, Landmark, CheckCircle2,
-  Sun, Moon, LayoutDashboard, ChevronLeft, ChevronRight, Menu
+  Sun, Moon, LayoutDashboard, ChevronLeft, ChevronRight, Menu, HelpCircle
 } from 'lucide-react';
 
 export default function App() {
@@ -466,6 +466,22 @@ export default function App() {
                 </span>
               )}
             </button>
+
+            <a
+              href="/Gastos-del-Tribunal/Manual_Usuario_Gastos_Tribunal.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              title={isSidebarCollapsed ? 'Manual de Usuario (PDF)' : undefined}
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center px-0 py-3' : 'gap-3 px-4 py-3'} text-sm font-medium rounded-lg transition-colors text-slate-400 hover:bg-slate-800 hover:text-white`}
+            >
+              <HelpCircle className="h-4.5 w-4.5 shrink-0 text-slate-400" />
+              {!isSidebarCollapsed && <span className="flex-grow text-left">Manual Usuario</span>}
+              {!isSidebarCollapsed && (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-indigo-400">
+                  PDF
+                </span>
+              )}
+            </a>
           </nav>
         </div>
 
