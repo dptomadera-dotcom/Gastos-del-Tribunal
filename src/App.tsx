@@ -25,11 +25,25 @@ import TableroScreen from './components/TableroScreen';
 import { 
   User, Calendar, FileText, Camera, Download, 
   Scale, ShieldCheck, Landmark, CheckCircle2,
-  Sun, Moon, LayoutDashboard
+  Sun, Moon, LayoutDashboard, ChevronLeft, ChevronRight, Menu
 } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'tablero' | 'perfil' | 'sesiones' | 'gastos' | 'escanner' | 'exportar'>('tablero');
+
+  // Sidebar collapse state
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    const saved = localStorage.getItem('sidebar_collapsed');
+    return saved === 'true';
+  });
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed((prev) => {
+      const newVal = !prev;
+      localStorage.setItem('sidebar_collapsed', String(newVal));
+      return newVal;
+    });
+  };
 
   // Dark mode state with automatic recovery from localStorage or system prefers
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -294,21 +308,23 @@ export default function App() {
   return (
     <div className="flex h-screen w-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans overflow-hidden antialiased transition-colors duration-200 print:h-auto print:overflow-visible">
       {/* Sidebar Navigation */}
-      <aside className="w-64 bg-slate-900 text-white flex flex-col shrink-0 print:hidden">
-        <div className="p-6 flex-1 flex flex-col overflow-y-auto">
+      <aside className={`${isSidebarCollapsed ? 'w-16' : 'w-64'} bg-slate-900 text-white flex flex-col shrink-0 transition-all duration-300 ease-in-out print:hidden`}>
+        <div className={`${isSidebarCollapsed ? 'p-3' : 'p-6'} flex-grow flex flex-col overflow-y-auto`}>
           {/* Logo / Title */}
-          <div className="flex items-center gap-3 mb-8">
+          <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-3'} mb-8`}>
             <div className="w-10 h-10 bg-indigo-500 rounded-lg flex items-center justify-center shrink-0">
               <Scale className="h-5.5 w-5.5 text-white" />
             </div>
-            <div>
-              <h1 className="text-xs font-black leading-tight uppercase tracking-wider text-white">
-                Mis Gastos
-              </h1>
-              <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest leading-none mt-0.5">
-                Tribunal 2026
-              </p>
-            </div>
+            {!isSidebarCollapsed && (
+              <div>
+                <h1 className="text-xs font-black leading-tight uppercase tracking-wider text-white">
+                  Mis Gastos
+                </h1>
+                <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest leading-none mt-0.5">
+                  Tribunal 2026
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Navigation Menu */}
@@ -316,96 +332,109 @@ export default function App() {
             <button
               id="tab-tablero"
               onClick={() => setActiveTab('tablero')}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
+              title={isSidebarCollapsed ? 'Tablero de Control' : undefined}
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center px-0 py-3' : 'gap-3 px-4 py-3'} text-sm font-medium rounded-lg transition-colors cursor-pointer ${
                 activeTab === 'tablero'
                   ? 'bg-indigo-600 text-white shadow-md'
                   : 'text-slate-400 hover:bg-slate-800 hover:text-white'
               }`}
             >
               <LayoutDashboard className="h-4.5 w-4.5 shrink-0" />
-              <span>Tablero de Control</span>
+              {!isSidebarCollapsed && <span>Tablero de Control</span>}
             </button>
 
             <button
               id="tab-perfil"
               onClick={() => setActiveTab('perfil')}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
+              title={isSidebarCollapsed ? 'Perfil de Vocal' : undefined}
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center px-0 py-3' : 'gap-3 px-4 py-3'} text-sm font-medium rounded-lg transition-colors cursor-pointer ${
                 activeTab === 'perfil'
                   ? 'bg-indigo-600 text-white shadow-md'
                   : 'text-slate-400 hover:bg-slate-800 hover:text-white'
               }`}
             >
               <User className="h-4.5 w-4.5 shrink-0" />
-              <span>Perfil de Vocal</span>
+              {!isSidebarCollapsed && <span>Perfil de Vocal</span>}
             </button>
 
             <button
               id="tab-sesiones"
               onClick={() => setActiveTab('sesiones')}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
+              title={isSidebarCollapsed ? `Mis Sesiones (${sessions.length})` : undefined}
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center px-0 py-3' : 'gap-3 px-4 py-3'} text-sm font-medium rounded-lg transition-colors cursor-pointer ${
                 activeTab === 'sesiones'
                   ? 'bg-indigo-600 text-white shadow-md'
                   : 'text-slate-400 hover:bg-slate-800 hover:text-white'
               }`}
             >
               <Calendar className="h-4.5 w-4.5 shrink-0" />
-              <span className="flex-grow text-left">Mis Sesiones</span>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                activeTab === 'sesiones' ? 'bg-indigo-700 text-white' : 'bg-slate-800 text-slate-300'
-              }`}>
-                {sessions.length}
-              </span>
+              {!isSidebarCollapsed && <span className="flex-grow text-left">Mis Sesiones</span>}
+              {!isSidebarCollapsed && (
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  activeTab === 'sesiones' ? 'bg-indigo-700 text-white' : 'bg-slate-800 text-slate-300'
+                }`}>
+                  {sessions.length}
+                </span>
+              )}
             </button>
 
             <button
               id="tab-gastos"
               onClick={() => setActiveTab('gastos')}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
+              title={isSidebarCollapsed ? `Registro de Dieta (${expenses.length})` : undefined}
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center px-0 py-3' : 'gap-3 px-4 py-3'} text-sm font-medium rounded-lg transition-colors cursor-pointer ${
                 activeTab === 'gastos'
                   ? 'bg-indigo-600 text-white shadow-md'
                   : 'text-slate-400 hover:bg-slate-800 hover:text-white'
               }`}
             >
               <FileText className="h-4.5 w-4.5 shrink-0" />
-              <span className="flex-grow text-left">Registro de Dieta</span>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                activeTab === 'gastos' ? 'bg-indigo-700 text-white' : 'bg-slate-800 text-slate-300'
-              }`}>
-                {expenses.length}
-              </span>
+              {!isSidebarCollapsed && <span className="flex-grow text-left">Registro de Dieta</span>}
+              {!isSidebarCollapsed && (
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  activeTab === 'gastos' ? 'bg-indigo-700 text-white' : 'bg-slate-800 text-slate-300'
+                }`}>
+                  {expenses.length}
+                </span>
+              )}
             </button>
 
             <button
               id="tab-escanner"
               onClick={() => setActiveTab('escanner')}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
+              title={isSidebarCollapsed ? `Justificantes (${justificantes.length})` : undefined}
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center px-0 py-3' : 'gap-3 px-4 py-3'} text-sm font-medium rounded-lg transition-colors cursor-pointer ${
                 activeTab === 'escanner'
                   ? 'bg-indigo-600 text-white shadow-md'
                   : 'text-slate-400 hover:bg-slate-800 hover:text-white'
               }`}
             >
               <Camera className="h-4.5 w-4.5 shrink-0" />
-              <span className="flex-grow text-left">Justificantes</span>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                activeTab === 'escanner' ? 'bg-indigo-700 text-white' : 'bg-slate-800 text-slate-300'
-              }`}>
-                {justificantes.length}
-              </span>
+              {!isSidebarCollapsed && <span className="flex-grow text-left">Justificantes</span>}
+              {!isSidebarCollapsed && (
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  activeTab === 'escanner' ? 'bg-indigo-700 text-white' : 'bg-slate-800 text-slate-300'
+                }`}>
+                  {justificantes.length}
+                </span>
+              )}
             </button>
           </nav>
         </div>
 
         {/* Sidebar Footer with primary action */}
-        <div className="p-6 border-t border-slate-800 bg-slate-950/40 shrink-0">
+        <div className={`${isSidebarCollapsed ? 'p-3' : 'p-6'} border-t border-slate-800 bg-slate-950/40 shrink-0`}>
           <button
             onClick={() => setActiveTab('exportar')}
-            className={`w-full font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-lg cursor-pointer ${
+            title={isSidebarCollapsed ? 'Exportar a Secretaría' : undefined}
+            className={`w-full font-semibold ${isSidebarCollapsed ? 'py-3 px-0' : 'py-3 px-4'} rounded-lg flex items-center justify-center gap-2 transition-colors shadow-lg cursor-pointer ${
               activeTab === 'exportar'
                 ? 'bg-indigo-600 hover:bg-indigo-500 text-white'
                 : 'bg-emerald-600 hover:bg-emerald-500 text-white'
             }`}
           >
-            <span>📤</span> Exportar a Secretaría
+            <span>📤</span>
+            {!isSidebarCollapsed && <span>Exportar a Secretaría</span>}
           </button>
         </div>
       </aside>
@@ -413,18 +442,39 @@ export default function App() {
       {/* Main Content Area */}
       <main className="flex-grow flex flex-col h-full overflow-hidden print:h-auto print:overflow-visible">
         {/* Top Header */}
-        <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-8 flex items-center justify-between shrink-0 transition-colors duration-200 print:hidden">
-          <div className="flex items-center gap-4">
-            <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/40 rounded uppercase">
+        <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 flex items-center justify-between shrink-0 transition-colors duration-200 print:hidden">
+          <div className="flex items-center gap-3">
+            {/* Botón para contraer/expandir menú */}
+            <button
+              onClick={toggleSidebar}
+              className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer focus:outline-none shrink-0"
+              title={isSidebarCollapsed ? 'Expandir menú' : 'Contraer menú'}
+            >
+              {isSidebarCollapsed ? (
+                <ChevronRight className="h-5 w-5" />
+              ) : (
+                <ChevronLeft className="h-5 w-5" />
+              )}
+            </button>
+
+            <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/40 rounded uppercase shrink-0">
               {profile?.cargo ? profile.cargo.toUpperCase().replace('_', ' ') : 'Vocal Titular'}
             </span>
-            <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">
+            <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 truncate hidden md:inline-block">
               {activeTab === 'tablero' && 'Tablero de Control / Análisis de Gastos'}
               {activeTab === 'perfil' && 'Perfil del Comisionado'}
               {activeTab === 'sesiones' && 'Gestión de Sesiones de Trabajo'}
               {activeTab === 'gastos' && 'Nueva Liquidación de Gasto / Registro de Dietas'}
               {activeTab === 'escanner' && 'Escáner y Cartera de Justificantes'}
               {activeTab === 'exportar' && 'Preparar Expediente de Liquidación'}
+            </h2>
+            <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 truncate md:hidden">
+              {activeTab === 'tablero' && 'Tablero'}
+              {activeTab === 'perfil' && 'Perfil'}
+              {activeTab === 'sesiones' && 'Sesiones'}
+              {activeTab === 'gastos' && 'Gastos'}
+              {activeTab === 'escanner' && 'Escáner'}
+              {activeTab === 'exportar' && 'Exportar'}
             </h2>
           </div>
           <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
