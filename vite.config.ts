@@ -6,6 +6,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(() => {
   return {
+    base: '/Gastos-del-Tribunal/',
     plugins: [
       react(), 
       tailwindcss(),
