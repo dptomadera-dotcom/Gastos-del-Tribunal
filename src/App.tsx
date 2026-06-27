@@ -504,7 +504,7 @@ export default function App() {
             </button>
 
             <a
-              href="/Gastos-del-Tribunal/Manual_Usuario_Gastos_Tribunal.pdf"
+              href={`${import.meta.env.BASE_URL}Manual_Usuario_Gastos_Tribunal.pdf`}
               target="_blank"
               rel="noopener noreferrer"
               title={isSidebarCollapsed ? 'Manual de Usuario (PDF)' : undefined}
