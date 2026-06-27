@@ -9,7 +9,7 @@ if (!import.meta.env.VITE_SUPABASE_ANON_KEY) {
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey || 'dummy-anon-key-to-prevent-crash');
 
 // Función utilitaria para verificar si la conexión a Supabase es viable
 export async function checkSupabaseConnection(): Promise<boolean> {
