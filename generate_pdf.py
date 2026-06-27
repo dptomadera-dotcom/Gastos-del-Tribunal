@@ -155,32 +155,31 @@ def build_manual():
     pdf.bullet_point("En Android", "Pulsa en el botón 'Instalar App Móvil' en el menú lateral izquierdo o el banner inferior de Chrome, y selecciona 'Instalar'.")
     pdf.bullet_point("En iOS (iPhone/iPad)", "Abre el enlace en Safari, toca el botón de 'Compartir' (el cuadrado con la flecha hacia arriba) y selecciona 'Añadir a la pantalla de inicio'.")
     
+    pdf.section_title("Portal de Acceso Inicial")
+    pdf.paragraph(
+        "Al iniciar la aplicacion, si estan configurados los parametros del servidor en la nube, se mostrara una pantalla de bienvenida interactiva. Puedes optar por:"
+    )
+    pdf.bullet_point("Iniciar Sesión / Registrarse", "Introduce tus credenciales de Supabase Auth para recuperar y sincronizar en caliente todos tus datos y tickets guardados en la nube.")
+    pdf.bullet_point("Continuar en Modo Local", "Pulsa en 'Continuar en Modo Local (Sin Cuenta)' si prefieres utilizar el almacenamiento interno del navegador (IndexedDB) de forma offline y privada en tu dispositivo móvil.")
+
     pdf.section_title("Configuración de Perfil")
     pdf.paragraph(
-        "La primera vez que abras la app, se te redirigirá a la pestaña 'Perfil de Vocal'. Es obligatorio rellenar estos datos para que se calculen los importes de forma legal:"
+        "Para rellenar tus datos oficiales del tribunal, ve a la pestaña 'Perfil de Vocal'. Es obligatorio completar estos datos para el calculo legal de indemnizaciones:"
     )
     pdf.bullet_point("Datos Personales", "Tu nombre completo, DNI y el Cargo que ocupas en el tribunal (Vocal, Presidente, Secretario, etc.).")
-    pdf.bullet_point("Medio de Transporte", "Si utilizas tu coche o moto propia para los desplazamientos, debes configurar la marca, modelo y matrícula de tu vehículo. La aplicación aplicará automáticamente el importe por kilómetro reglamentario (0,26 euros/km para turismos y 0,106 euros/km para motocicletas).")
+    pdf.bullet_point("Medio de Transporte", "Si utilizas tu coche o moto propia para los desplazamientos, debes configurar la marca, modelo y matricula de tu vehiculo. La aplicacion aplicara automaticamente el importe por kilometro reglamentario (0,26 euros/km para turismos y 0,106 euros/km para motocicletas).")
 
     # 3. CONFIGURACIÓN AVANZADA
     pdf.add_page()
-    pdf.chapter_title("3", "Configuración Avanzada (Opcional)")
+    pdf.chapter_title("3", "Pestaña de Ajustes (Icono de Engranaje)")
     
-    pdf.section_title("Ajustes de Inteligencia Artificial (Gemini)")
     pdf.paragraph(
-        "Para habilitar el escaneo inteligente de justificantes mediante Inteligencia Artificial, ve a la sección "
-        "'Ajustes de Inteligencia Artificial (Gemini)' en tu Perfil:"
+        "Todas las configuraciones tecnicas y de cuenta se han movilizado a la pestaña 'Ajustes' (representada por el icono de un engranaje en la barra de navegacion lateral):"
     )
-    pdf.bullet_point("API Key de Gemini", "Pega tu clave personal gratuita (se puede obtener en Google AI Studio haciendo clic en el enlace provisto). Esta clave se almacena exclusivamente en tu dispositivo de forma segura y se comunica directamente con los servidores de Google para procesar las imágenes de los tickets.")
-
-    pdf.section_title("Sincronización en la Nube (Supabase)")
-    pdf.paragraph(
-        "Por defecto, la app guarda todo en la base de datos local de tu móvil (IndexedDB), asegurando que funciona sin internet. "
-        "Si quieres habilitar el guardado multidispositivo (por ejemplo, tomar fotos con el móvil y ver los gastos en el ordenador), "
-        "puedes configurar la conexión a Supabase:"
-    )
-    pdf.bullet_point("Datos de Conexión", "Introduce la 'Supabase URL' y la 'Supabase Anon Key' de tu proyecto en el panel 'Configuración de Conexión Supabase (Hostings Públicos)'. Haz clic en 'Guardar Conexión' y la app se recargará automáticamente.")
-    pdf.bullet_point("Registro/Login", "Una vez conectada a Supabase, puedes crear una cuenta o iniciar sesión. Desde ese momento, tus datos se sincronizarán en la nube de forma encriptada bajo políticas estrictas de seguridad de fila (RLS).")
+    pdf.bullet_point("Apariencia y Tema", "Permite alternar entre el Tema Claro (optimo para trabajar de dia) y el Tema Oscuro (comodo para la noche).")
+    pdf.bullet_point("Conexión con Supabase", "Introduce la 'Supabase URL' y la 'Supabase Anon Key' de tu proyecto para conectar la app a la nube. Al guardar, la app se reiniciara de forma automatica.")
+    pdf.bullet_point("Sincronización de Cuenta", "Una vez conectada a Supabase, puedes iniciar sesion con tu cuenta de vocal, registrar una nueva cuenta o cerrar tu sesion para volver al modo local seguro.")
+    pdf.bullet_point("Ajustes de Inteligencia Artificial (Gemini)", "Introduce tu Gemini API Key (que puedes obtener gratis en Google AI Studio) para posibilitar el escaneo inteligente de justificantes.")
 
     # 4. GESTIÓN DE SESIONES
     pdf.chapter_title("4", "Gestión de Sesiones de Trabajo")
